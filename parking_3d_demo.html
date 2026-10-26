@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Parking — 3D Style Demo</title>
+<style>
+:root{--bg:#0b1220;--panel:#111c2e;--line:#30425b;--green:#36d399;--red:#fb7185;--amber:#fbbf24;--text:#eef5ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1c3150,#080d17 70%);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+main{max-width:1100px;margin:auto;padding:22px}h1{font-size:clamp(24px,4vw,38px);margin:0 0 6px}.sub{color:#a8bbd4;margin-bottom:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.metrics{display:flex;gap:10px;flex-wrap:wrap}.metric{background:#142239;border:1px solid var(--line);padding:12px 18px;border-radius:14px;min-width:125px}.metric small{display:block;color:#a8bbd4}.metric b{font-size:25px}
+.scene-wrap{margin-top:18px;background:linear-gradient(145deg,#122039,#0c1424);border:1px solid var(--line);border-radius:20px;padding:12px;overflow:hidden}
+.scene{height:440px;position:relative;perspective:850px;overflow:hidden;border-radius:14px;background:linear-gradient(#182943 0 28%,#26384a 28% 100%)}
+.skyline{position:absolute;top:0;left:0;right:0;height:28%;background:linear-gradient(#142238,#23364e)}
+.building{position:absolute;bottom:0;width:70px;background:#30445e;border:1px solid #516985;height:75%}.b1{left:4%;height:60%}.b2{left:13%;height:90%}.b3{right:8%;height:72%}.b4{right:18%;height:88%}
+.ground{position:absolute;left:6%;right:6%;bottom:-6%;height:78%;transform:rotateX(52deg);transform-origin:center bottom;background:#435365;border:3px solid #738397;box-shadow:0 15px 35px #0008}
+.lane{position:absolute;left:7%;right:7%;top:47%;height:3px;background:repeating-linear-gradient(90deg,#e9eef5 0 25px,transparent 25px 45px)}
+.bays{position:absolute;left:16%;right:16%;top:18%;height:64%;display:grid;grid-template-columns:repeat(2,1fr);gap:24px 7%;transform:rotateX(8deg)}
+.bay{position:relative;border:3px solid #c9d4df;border-bottom:0;background:linear-gradient(135deg,#52647766,#25384d88);border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center}
+.bay span{position:absolute;top:5px;left:7px;font-size:12px;font-weight:700;color:#eaf2ff;text-shadow:0 2px 3px #000}
+.car{width:70%;height:45%;position:relative;filter:drop-shadow(0 10px 5px #0008);transition:opacity .25s,transform .7s;opacity:0;transform:translateY(30px) scale(.7)}
+.car.visible{opacity:1;transform:translateY(0) scale(1)}
+.car .body{position:absolute;left:7%;right:7%;top:25%;bottom:10%;border-radius:13px 13px 9px 9px;background:linear-gradient(110deg,#50b8ff,#1461b8);border:2px solid #a8e1ff}
+.car .roof{position:absolute;left:24%;right:24%;top:4%;height:38%;border-radius:12px 12px 3px 3px;background:linear-gradient(110deg,#c7f1ff,#3d779b);border:2px solid #a8e1ff}
+.wheel{position:absolute;width:12%;height:27%;background:#101722;border-radius:4px;top:33%;z-index:2}.w1{left:0}.w2{right:0}.w3{left:0;top:66%}.w4{right:0;top:66%}
+.entry{position:absolute;bottom:14%;left:3%;width:18%;height:20%;display:flex;align-items:flex-end;gap:8px}.barrier{height:8px;width:100px;background:#f8fafc;border:2px solid #1f2937;transform-origin:left center;transform:rotate(0deg);transition:transform .4s;border-radius:3px}.barrier.open{transform:rotate(-65deg)}
+.post{width:15px;height:60px;background:#e5edf6;border:2px solid #1e293b;border-radius:3px}
+.exit{position:absolute;bottom:14%;right:3%;width:18%;height:20%;display:flex;align-items:flex-end;gap:8px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:700;color:#07111e;background:var(--green);cursor:pointer}.btn.exitbtn{background:#93c5fd}.btn.reset{background:#fbbf24}.btn:disabled{opacity:.45;cursor:not-allowed}
+.status{margin-top:12px;padding:12px 15px;border:1px solid var(--line);border-radius:12px;background:#111c2e}.full{color:var(--red);font-weight:800}.ready{color:var(--green);font-weight:800}
+@media(max-width:650px){.scene{height:360px}.bays{left:20%;right:20%;gap:16px 5%}.car{width:85%}.entry,.exit{width:22%}.metric{min-width:100px}}
+</style></head>
+<body><main>
+<header><div><h1>SMART CAR PARKING</h1><div class="sub">Animated 3D-style four-slot PLC demo</div></div>
+<div class="metrics"><div class="metric"><small>AVAILABLE</small><b id="avail">4</b></div><div class="metric"><small>OCCUPIED</small><b id="occ">0</b></div><div class="metric"><small>CAPACITY</small><b>4</b></div></div></header>
+<div class="scene-wrap"><div class="scene"><div class="skyline"></div><div class="building b1"></div><div class="building b2"></div><div class="building b3"></div><div class="building b4"></div><div class="ground"></div><div class="lane"></div>
+<div class="bays" id="bays"></div>
+<div class="entry"><div class="post"></div><div id="ebar" class="barrier"></div></div><div class="exit"><div class="post"></div><div id="xbar" class="barrier"></div></div>
+</div></div>
+<div class="controls"><button class="btn" id="enter">＋ Simulate car entry</button><button class="btn exitbtn" id="leave">↗ Simulate car exit</button><button class="btn reset" id="reset">Reset parking</button></div>
+<div class="status" id="status"><span class="ready">SYSTEM READY</span> — 4 spaces available.</div>
+</main>
+<script>
+const bays=document.getElementById('bays'); const slots=[false,false,false,false];
+function makeCar(){return `<div class="car"><i class="wheel w1"></i><i class="wheel w2"></i><i class="wheel w3"></i><i class="wheel w4"></i><div class="roof"></div><div class="body"></div></div>`}
+for(let i=0;i<4;i++){const b=document.createElement('div');b.className='bay';b.innerHTML=`<span>SLOT ${i+1}</span>${makeCar()}`;bays.appendChild(b)}
+function render(){let n=slots.filter(Boolean).length;document.getElementById('avail').textContent=4-n;document.getElementById('occ').textContent=n;
+document.querySelectorAll('.bay').forEach((b,i)=>{b.querySelector('.car').classList.toggle('visible',slots[i]);b.style.borderColor=slots[i]?'#fb7185':'#36d399'});
+const full=n===4;document.getElementById('enter').disabled=full;document.getElementById('leave').disabled=n===0;
+document.getElementById('status').innerHTML=full?'<span class="full">PARKING FULL</span> — Entry blocked.':n===0?'<span class="ready">SYSTEM READY</span> — 4 spaces available.':`<span class="ready">PARKING ACTIVE</span> — ${4-n} spaces available.`;
+}
+function pulse(id){const el=document.getElementById(id);el.classList.add('open');setTimeout(()=>el.classList.remove('open'),1200)}
+document.getElementById('enter').onclick=()=>{let i=slots.indexOf(false);if(i>=0){slots[i]=true;pulse('ebar');render()}};
+document.getElementById('leave').onclick=()=>{let i=slots.lastIndexOf(true);if(i>=0){slots[i]=false;pulse('xbar');render()}};
+document.getElementById('reset').onclick=()=>{slots.fill(false);render()};render();
+</script></body></html>
